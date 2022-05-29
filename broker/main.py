@@ -9,8 +9,14 @@ from typing import List
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 from sklearn.cluster import dbscan
-
+import os
 app = FastAPI()
+
+
+if not os.path.exists('readme.txt'):
+    dbdata = {'searches':[]}
+    with open('db.json', 'w+') as f:
+        json.dump(dbdata,f)
 
 OWN_STATUS = "B"
 PATIENCE = 3
