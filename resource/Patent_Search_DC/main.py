@@ -3,19 +3,19 @@ import os
 from scipy.spatial.distance import cosine
 import numpy as np
 import pickle
-from clean_text import *
+from Patent_Search_DC.clean_text import *
 import pandas as pd
 
 """## 6.3. Using Cosine Distance Similarity to Retrieve Information"""
 
 print(os.listdir('./'))
-vect = pickle.load(open("vect.pickle", "rb"))
-vect_text = pickle.load(open("vect_text.pickle", "rb"))
+vect = pickle.load(open("./Patent_Search_DC/vect.pickle", "rb"))
+vect_text = pickle.load(open("./Patent_Search_DC/vect_text.pickle", "rb"))
 
-terms_rep = pickle.load(open("terms_rep.pickle", "rb"))
-docs_rep = pickle.load(open("doc_rep.pickle", "rb"))
+terms_rep = pickle.load(open("./Patent_Search_DC/terms_rep.pickle", "rb"))
+docs_rep = pickle.load(open("./Patent_Search_DC/doc_rep.pickle", "rb"))
 
-df_merged = pd.read_csv('final_patents_dataset.csv')
+df_merged = pd.read_csv('./Patent_Search_DC/final_patents_dataset.csv')
 df_merged = df_merged.iloc[: , 1:]
 df1 = df_merged.head(5000)
 print(df1.head())
@@ -50,7 +50,9 @@ def get_rankings(query, count):
         for rank, sort_index in enumerate(query_doc_sort_index):
             list_res.append({
                 'score': 1 - query_doc_cos_dist[sort_index],
-                'text' : df1['patent_id'][sort_index]
+                'text' : df1['patent_id'][sort_index],
+                'docid': df1['patent_id'][sort_index],
+                'title': f'Article {df1["patent_id"][sort_index]}'
             })
             print ('Rank : ', rank, ' Consine : ', 1 - query_doc_cos_dist[sort_index],' Link : ', ' https://patents.google.com/patent/US' + df1['patent_id'][sort_index])
             if print_count == count :

@@ -113,14 +113,17 @@ async def search(q):
     dbdata['searches'].append({'query_id':query_id,'query':q,'results':[]})
     with open('db.json', 'w') as dbfile:
         json.dump(dbdata,dbfile)
-        
+    rnum = len(manager.all_active_resources)
+    ogrnum = rnum
+    if rnum == 0:
+        rnum = 1
     send_data_to_resources = {
         'from':OWN_STATUS,
         'data':{
             'type':'USER_SEARCH',
             'search_id':query_id,
             'query':str(q),
-            'limit':ceil(30/(len(manager.all_active_resources)+1))
+            'limit':ceil(30)
         }
     }
     await manager.broadcast(json.dumps(send_data_to_resources))
@@ -140,10 +143,10 @@ async def search(q):
                             print(f'\n\n{r["docid"]} already in result with score {results["result"][r["docid"]]["score"]} compared to {r["score"]}')
                         else:
                             results['result'][r['docid']] = r
-        
+    
     print(results)
     vals = list(results['result'].values())
-    return sorted(vals, key=lambda x:x['score'], reverse=True)
+    return {'searched_by_nodes':ogrnum,'results':sorted(vals, key=lambda x:x['score'], reverse=True)}
 
 @app.websocket("/ws/{resource_id}")
 async def websocket_endpoint(websocket: WebSocket, resource_id: int):
@@ -161,7 +164,7 @@ async def websocket_endpoint(websocket: WebSocket, resource_id: int):
                     'type':'RESOURCE_MESSAGE',
                     'message':data
                 }
-            }
+            } 
             # await manager.send_personal_message(json.dumps(send_data), websocket)
             await manager.broadcast(json.dumps(send_data))
 

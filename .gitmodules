@@ -1,3 +1,3 @@
 [submodule "Patent_Search_DC"]
-	path = Patent_Search_DC
+	path = resource/Patent_Search_DC
 	url = https://github.com/dawoodwasif/Patent-Search-DC

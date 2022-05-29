@@ -16,16 +16,9 @@ BROKER = '127.0.0.1:8000'
 OWN_ID = str(datetime.now().microsecond)+str(datetime.now().microsecond)
 
 def generate_results(query, k):
-    res = []
-    for i in range(int(k)):
-        id = randint(1,100)
-        res.append({
-            'docid':id,
-            'title':f'Article {id} telling information about {id}',
-            'score':random(),
-            'link':f'https:gofuckyourself.com/{id}'
-        })
-    return res
+    r = patent_main.get_rankings(query,k)
+    print(r)
+    return r
 
 async def receiver_messages():
     global BROKER
