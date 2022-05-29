@@ -1,12 +1,15 @@
+from __future__ import absolute_import
 import asyncio
 from datetime import datetime
 
 from random import randint, random
 import websockets
 import json
- 
-from Patent_Search_DC.main import get_rankings
 
+
+from Patent_Search_DC import main as patent_main
+
+print(patent_main.get_rankings)
 
 OWN_STATUS = 'R'
 BROKER = '127.0.0.1:8000'

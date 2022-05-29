@@ -2,14 +2,13 @@ import asyncio
 from datetime import datetime
 import json
 from math import ceil
-from multiprocessing.reduction import send_handle
-from random import randint
 from typing import List
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
-from sklearn.cluster import dbscan
 import os
+import uvicorn
+
 app = FastAPI()
 
 
@@ -193,3 +192,7 @@ async def websocket_endpoint(websocket: WebSocket, resource_id: int):
     except WebSocketDisconnect:
         manager.disconnect(websocket)
         await manager.broadcast(json.dumps({'from':OWN_STATUS, 'data':{'type':'RESOURCE_LEFT', 'resource_id':resource_id}}))
+
+
+if __name__ == '__main__':
+    uvicorn.run(app=app, host="127.0.0.1", port=8000, log_level="info")
