@@ -18,7 +18,7 @@ if not os.path.exists('readme.txt'):
         json.dump(dbdata,f)
 
 OWN_STATUS = "B"
-PATIENCE = 3
+PATIENCE = 10
 
 
 
@@ -123,7 +123,7 @@ async def search(q):
             'type':'USER_SEARCH',
             'search_id':query_id,
             'query':str(q),
-            'limit':ceil(30)
+            'limit':ceil(10)
         }
     }
     await manager.broadcast(json.dumps(send_data_to_resources))
