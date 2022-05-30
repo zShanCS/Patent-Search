@@ -5,7 +5,7 @@ import numpy as np
 import pickle
 from Patent_Search_DC.clean_text import *
 import pandas as pd
-import requests
+import grequests
 from bs4 import BeautifulSoup
 import re
 from unidecode import unidecode
@@ -33,22 +33,6 @@ def nospecial(text):
   text = re.sub("â", "",text)
   text = re.sub("- Google Patents", "",text)
   return text
-
-def get_title(url):
-
-  # making requests instance
-  reqs = requests.get(url)
-  
-  # using the BeautifulSoup module
-  soup = BeautifulSoup(reqs.text, 'html.parser')
-  
-  for title in soup.find_all('title'):
-      x = str(unidecode(nospecial(title.get_text())))
-  if '\n' in x:
-    x = x.split('\n')[0]
-
-  title = x.rstrip()
-  return title
  
 
 # This is a function to generate query_rep
@@ -77,20 +61,40 @@ def get_rankings(query, count):
         print_count = 0
         
         list_res = []
+        urls = []
+        titles = []
         for rank, sort_index in enumerate(query_doc_sort_index):
+            url = 'https://patents.google.com/patent/US' + df1['patent_id'][sort_index]
             list_res.append({
                 'score': 1 - query_doc_cos_dist[sort_index],
                 'text' : (df1['text'][sort_index])[:100] + '.....',
                 'docid': df1['patent_id'][sort_index],
-                'url'  : 'https://patents.google.com/patent/US' + df1['patent_id'][sort_index],
-                'title': get_title('https://patents.google.com/patent/US' + df1['patent_id'][sort_index])
-
+                'url'  : url,
+                'title': ''
             })
+            urls.append(url)
             print ('Rank : ', rank, ' Consine : ', 1 - query_doc_cos_dist[sort_index],' Link : ', 'https://patents.google.com/patent/US' + df1['patent_id'][sort_index])
             if print_count == count :
                 break
             else:
                 print_count += 1
+
+        # making requests instance
+        rs = (grequests.get(u) for u in urls)
+        reqs = grequests.map(rs)
+        # using the BeautifulSoup module
+        for req in reqs:
+            soup = BeautifulSoup(req.text, 'html.parser')
+            for title in soup.find_all('title'):
+                x = str(unidecode(nospecial(title.get_text())))
+            if '\n' in x:
+                x = x.split('\n')[0]
+            title = x.rstrip()
+            titles.append(title)
+       
+        for index, dic in enumerate(list_res):
+            dic['title'] = titles[index]
+
         print(list_res)
         return list_res
 if __name__ == '__main__':

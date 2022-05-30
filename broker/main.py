@@ -18,7 +18,7 @@ if not os.path.exists('readme.txt'):
         json.dump(dbdata,f)
 
 OWN_STATUS = "B"
-PATIENCE = 10
+PATIENCE = 50
 
 
 
