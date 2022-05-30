@@ -1,14 +1,17 @@
 from __future__ import absolute_import
 import os
+from time import time
+from tracemalloc import start
 from scipy.spatial.distance import cosine
 import numpy as np
 import pickle
 from Patent_Search_DC.clean_text import *
 import pandas as pd
 import grequests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, SoupStrainer
 import re
 from unidecode import unidecode
+import threading
 
 
 
@@ -80,20 +83,52 @@ def get_rankings(query, count):
                 print_count += 1
 
         # making requests instance
+        print('SENDING BS4 REQUESTS')
+        print(urls)
         rs = (grequests.get(u) for u in urls)
         reqs = grequests.map(rs)
-        # using the BeautifulSoup module
-        for req in reqs:
-            soup = BeautifulSoup(req.text, 'html.parser')
-            for title in soup.find_all('title'):
+        # print("BS4 REquests completed")
+        # # using the BeautifulSoup module
+        # start_time = time()
+        # for idx,req in enumerate(reqs):
+        #     soup = BeautifulSoup(req.text, 'html.parser')
+        #     for title in soup.find_all('title'):
+        #         x = str(unidecode(nospecial(title.get_text())))
+        #     if '\n' in x:
+        #         x = x.split('\n')[0]
+        #     title = x.rstrip()
+        #     print(title)
+        #     titles.append(title)
+        # print("--- %s seconds ---" % (time() - start_time))
+        def get_title_from_req(idx,docid, req, output_dict):
+            print(idx,' running' ,req,output_dict)
+            starttime = time()
+            parsetime_start = time()
+            soup = BeautifulSoup(req.text, 'html.parser', parse_only=SoupStrainer('title'))
+            parse_time = time() - parsetime_start
+            soup_find_res = soup.find('title')
+            find_time_start = time()
+            for title in soup_find_res:
                 x = str(unidecode(nospecial(title.get_text())))
+            find_time = time() - find_time_start
             if '\n' in x:
                 x = x.split('\n')[0]
             title = x.rstrip()
-            titles.append(title)
-       
+            output_dict[idx]=title
+            print(idx,f" took: %s seconds has parse time {parse_time} and find time {find_time}, now {len(output_dict)} have been found" % (time() - starttime))
+            return title
+
+        titles_dict = {}
+        start_time = time()
+        threads = [threading.Thread(target=get_title_from_req, args=(idx,list_res[idx]['docid'],req,titles_dict)) for idx,req in enumerate(reqs)]
+        [t.start() for t in threads]
+        print('Now waiting for them to joing')
+        [t.join() for t in threads]
+        print("--- %s seconds ---" % (time() - start_time))
+
+        print(titles_dict)
         for index, dic in enumerate(list_res):
-            dic['title'] = titles[index]
+            dic['title'] = titles_dict[index]
 
         print(list_res)
         return list_res

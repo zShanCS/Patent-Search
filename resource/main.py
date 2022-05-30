@@ -46,7 +46,8 @@ async def receiver_messages():
                         }
                         await websocket.send(json.dumps(send_response))
     except websockets.exceptions.ConnectionClosedError as conclose:
-        print('Broker Went Down')
+        print('Connection To Broker Lost Abnormally.')
+        print(conclose)
         BROKER = input(f'Try Connextion Again? Enter Brokers Address. (or "." for default {BROKER}) Enter "n" or "N" To Cancel.')
         if BROKER.lower() == 'n':
             print('Exiting...')

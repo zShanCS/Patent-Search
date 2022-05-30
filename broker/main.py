@@ -18,7 +18,7 @@ if not os.path.exists('readme.txt'):
         json.dump(dbdata,f)
 
 OWN_STATUS = "B"
-PATIENCE = 50
+PATIENCE = 15
 
 
 
@@ -138,6 +138,8 @@ async def search(q):
             if dbdata['searches'][idx]['query_id'] == query_id:
                 print('FOUNDDDD')
                 for res in dbdata['searches'][idx]['results']:
+                    if not res['result']:
+                        break
                     for r in res['result']:
                         if r['docid'] in results['result'] and results["result"][r["docid"]]["score"] > r["score"]:
                             print(f'\n\n{r["docid"]} already in result with score {results["result"][r["docid"]]["score"]} compared to {r["score"]}')
@@ -198,4 +200,4 @@ async def websocket_endpoint(websocket: WebSocket, resource_id: int):
 
 
 if __name__ == '__main__':
-    uvicorn.run(app=app, host="127.0.0.1", port=8000, log_level="info")
+    uvicorn.run(app=app, host="127.0.0.1", port=8000, log_level="info", ws_ping_timeout=300)
