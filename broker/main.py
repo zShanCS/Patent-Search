@@ -177,7 +177,19 @@ async def search(q):
     
     print(results)
     vals = list(results['result'].values())
-    return {'searched_by_nodes':ogrnum,'results':sorted(vals, key=lambda x:x['score'], reverse=True)}
+    print("=========================+++++++++++++++++++++++++========================================")
+    for doc in vals:
+        doc['abstract'] = doc['text']
+        del doc['text']
+        doc['applicants'] = [doc['url']]
+        del doc['url']
+        doc['id'] = doc['docid']
+        del doc['docid']
+        doc['familyId'] = doc['id']
+        doc['inventors'] = ["Unknown"]
+    print(vals)
+    return sorted(vals, key=lambda x:x['score'], reverse=True)
+    # return {'searched_by_nodes':ogrnum,'results':sorted(vals, key=lambda x:x['score'], reverse=True)}
 
 @app.websocket("/ws/{resource_id}")
 async def websocket_endpoint(websocket: WebSocket, resource_id: int):
