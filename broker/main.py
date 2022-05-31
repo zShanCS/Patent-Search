@@ -8,8 +8,23 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 import os
 import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:8000",
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 
 if not os.path.exists('readme.txt'):
@@ -20,6 +35,9 @@ if not os.path.exists('readme.txt'):
 OWN_STATUS = "B"
 PATIENCE = 15
 
+query_wait = {
+
+}
 
 
 class ConnectionManager:
@@ -129,7 +147,18 @@ async def search(q):
     await manager.broadcast(json.dumps(send_data_to_resources))
     results = {'result':{}}
     # wait for 10 seconds for resources to reply
-    await asyncio.sleep(PATIENCE)
+    
+    # await asyncio.sleep(PATIENCE)
+
+    query_wait[query_id] = len(manager.all_active_resources)
+    km = 0
+    while query_wait[query_id] > 0:
+        km += 1
+        print(f'{km}: still waiting on the query {query_id} waiting on {query_wait[query_id]} nodes {query_wait}')
+        await asyncio.sleep(1)
+
+
+
     result_set = set()
     with open('db.json', 'r') as dbfile:
         dbdata = json.load(dbfile)
@@ -190,6 +219,7 @@ async def websocket_endpoint(websocket: WebSocket, resource_id: int):
                                     'resource_id':resource_id,
                                     'result':res
                                 })
+                                query_wait[qid] = query_wait[qid] - 1
                     print('after wriitng result', dbdata)
                     with open('db.json', 'w') as dbfile:
                         json.dump(dbdata, dbfile)
